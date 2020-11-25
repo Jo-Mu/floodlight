@@ -1,7 +1,7 @@
 /*******************
 
 Team members and IDs:
-Name1 ID1
+Jonathan Muniz ID1 5047584
 Name2 ID2
 Name3 ID3
 
@@ -137,8 +137,54 @@ public class MyRouting implements IOFMessageListener, IFloodlightModule {
 		// Print the topology if not yet.
 		if (!printedTopo) {
 			System.out.println("*** Print topology");
-
-			// For each switch, print its neighbor switches.
+			
+			HashMap<Long, Integer> switchList = new HashMap<Long, Integer>();
+			int switchNum = 1;
+			
+			for(Map.Entry<Long, IOFSwitch> entry : switches.entrySet()) 
+			{
+				switchList.put(entry.getKey(), switchNum);
+				switchNum++;
+			}
+			
+			for(Map.Entry<Long, Integer> switchEntry : switchList.entrySet())
+			{
+				System.out.print("switch " + switchEntry.getValue() + "neighbors: ");
+				boolean firstLink = true;
+				
+				for(Map.Entry<Link, LinkInfo> linkEntry : links.entrySet()) 
+				{
+					Link link = linkEntry.getKey();
+					
+					if(switchEntry.getKey() == link.getSrc()) 
+					{
+						if(firstLink) 
+						{
+							System.out.print(switchList.get(link.getDst()));
+							firstLink = false;
+						}
+						else 
+						{
+							System.out.print(", " + switchList.get(link.getDst()));
+						}
+					}
+					else if(switchEntry.getKey() == link.getDst()) 
+					{
+						if(firstLink) 
+						{
+							System.out.print(switchList.get(link.getSrc()));
+							firstLink = false;
+						}
+						else 
+						{
+							System.out.print(", " + switchList.get(link.getSrc()));
+						}
+					}
+				}
+				
+				System.out.println();
+			}
+			
 
 			printedTopo = true;
 		}
