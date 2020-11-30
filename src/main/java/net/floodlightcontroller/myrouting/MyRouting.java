@@ -14,6 +14,7 @@ package net.floodlightcontroller.myrouting;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -135,56 +136,46 @@ public class MyRouting implements IOFMessageListener, IFloodlightModule {
 
 
 		// Print the topology if not yet.
-		if (!printedTopo) {
+		if (!printedTopo) 
+		{
 			System.out.println("*** Print topology");
+			links = lds.getLinks();
+			Map<Long, Set<Link>> switchList = lds.getSwitchLinks();
 			
-			HashMap<Long, Integer> switchList = new HashMap<Long, Integer>();
-			int switchNum = 1;
-			
-			for(Map.Entry<Long, IOFSwitch> entry : switches.entrySet()) 
+			for(Map.Entry<Long, Set<Link>> entry : switchList.entrySet()) 
 			{
-				switchList.put(entry.getKey(), switchNum);
-				switchNum++;
-			}
-			
-			for(Map.Entry<Long, Integer> switchEntry : switchList.entrySet())
-			{
-				System.out.print("switch " + switchEntry.getValue() + "neighbors: ");
+				System.out.print("switch " + entry.getKey() + " neighbors: ");
+				HashSet<Long> linkIds = new HashSet<Long>();
+				
+				for(Link link : entry.getValue()) 
+				{
+					if(entry.getKey() == link.getDst()) 
+					{
+						linkIds.add(link.getSrc());
+					}
+					else
+					{
+						linkIds.add(link.getDst());
+					}
+				}
+				
 				boolean firstLink = true;
 				
-				for(Map.Entry<Link, LinkInfo> linkEntry : links.entrySet()) 
+				for(Long id : linkIds) 
 				{
-					Link link = linkEntry.getKey();
-					
-					if(switchEntry.getKey() == link.getSrc()) 
+					if(firstLink) 
 					{
-						if(firstLink) 
-						{
-							System.out.print(switchList.get(link.getDst()));
-							firstLink = false;
-						}
-						else 
-						{
-							System.out.print(", " + switchList.get(link.getDst()));
-						}
+						System.out.print(id);
+						firstLink = false;
 					}
-					else if(switchEntry.getKey() == link.getDst()) 
+					else 
 					{
-						if(firstLink) 
-						{
-							System.out.print(switchList.get(link.getSrc()));
-							firstLink = false;
-						}
-						else 
-						{
-							System.out.print(", " + switchList.get(link.getSrc()));
-						}
+						System.out.print(", " + id);
 					}
 				}
 				
 				System.out.println();
 			}
-			
 
 			printedTopo = true;
 		}
@@ -201,19 +192,19 @@ public class MyRouting implements IOFMessageListener, IFloodlightModule {
 		else{
 			System.out.println("*** New flow packet");
 
-			// Parse the incoming packet.
+		// Parse the incoming packet.
 			OFPacketIn pi = (OFPacketIn)msg;
 			OFMatch match = new OFMatch();
-		    match.loadFromPacket(pi.getPacketData(), pi.getInPort());	
+		    match.loadFromPacket(pi.getPacketData(), pi.getInPort());
 			
 			// Obtain source and destination IPs.
 			// ...
-			System.out.println("srcIP: " + "a.b.c.d");
-	        System.out.println("dstIP: " + "a.b.c.d");
-
+			System.out.println("srcIP: " + match.getNetworkSourceCIDR());
+	        System.out.println("dstIP: " + match.getNetworkDestinationCIDR());
 
 			// Calculate the path using Dijkstra's algorithm.
 			Route route = null;
+			
 			// ...
 			System.out.println("route: " + "1 2 3 ...");			
 
